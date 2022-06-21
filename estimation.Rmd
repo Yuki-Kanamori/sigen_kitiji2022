@@ -19,10 +19,9 @@ require(ggrepel)
 require(cowplot)
 require(maps)
 require(mapdata)
-require(grid)
-require(gtable)
 
-dir = "/Users/Yuki/Dropbox/業務/キチジ太平洋北部/SA2022/"
+
+dir = "/Users/Yuki/Dropbox/業務/キチジ太平洋北部/SA2022/inputdata/"
 fileEncoding = "CP932"
 
 # not change
