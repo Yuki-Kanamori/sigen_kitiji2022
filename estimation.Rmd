@@ -371,7 +371,7 @@ for(i in 1:length(sheets)){
   tag = tag %>% mutate(length_cate = ifelse(length_mm < 100, str_sub(tag$length_mm, 1, 1), str_sub(tag$length_mm, 1, 2)))
   tag = tag %>% dplyr::rename(age = age_num)
   
-  naa2 = merge(naa, tag, by = c("length_mm", "age"), all = T)
+  naa2 = merge(naa %>% dplyr::rename(age = age3), tag, by = c("length_mm", "age"), all = T)
   naa2$number = ifelse(is.na(naa2$number), 0, naa2$number)
   summary(naa2)
   NAA = naa2 %>% dplyr::group_by(age, length_cate) %>% dplyr::summarize(number = sum(number))
@@ -934,19 +934,23 @@ fig15 = g+p+pa+lab+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuou
 
 
 ```{r ABC, echo=F, results=F, warning=F}
+# F_current = 直近3年のFの平均
 f_current = fishing_rate %>% filter(year > (n_year-4)) %>% summarize(mean(f))
 
 s_current = exp(-(M+f_current))
 
+# 1歳魚の生残率
 s1_current = survival %>% filter(year > (n_year-4), age == 2) %>% summarize(mean(surv))
 
+# 1歳魚が2歳魚になる計算
 number_2old_oct_last = trawl %>% filter(year == (n_year-1), age == 1) %>% select(number)/1000 * s1_current
 number_2old_jan_this = number_2old_oct_last*survival_2month %>% filter(year == (n_year-1)) %>% select(surv)
 number_2old_jan_this_sel = number_2old_jan_this/q %>% filter(year == (n_year-1), age == 2) %>% select(q)
 
-abund_this =  est %>% filter(year == n_year) %>% select(number, biomass, year, age) %>% dplyr::rename(number_est = number, biomass_est = biomass) # get the abundance of this year (2021)
-abund_this = left_join(abund_this, weight %>% filter(year == (n_year-1)), by = c("age")) # get the weight of last year (2020) and 
+abund_this =  est %>% filter(year == n_year) %>% select(number, biomass, year, age) %>% dplyr::rename(number_est = number, biomass_est = biomass) # get the abundance of this year (2022)
+abund_this = left_join(abund_this, weight %>% filter(year == (n_year-1)), by = c("age"))
 
+# 来年1月の資源量の計算（今年2歳魚以上）
 next_year = NULL
 for(i in unique(abund_this$age)){
   # # 1歳
@@ -965,12 +969,13 @@ for(i in unique(abund_this$age)){
 temp = data.frame(age = 2, number_est = number_2old_jan_this_sel) %>% dplyr::rename(number_est = number)
 temp2 = data.frame(age = rep(3:10), number_est = next_year)
 next_year = rbind(temp, temp2)
+
 abund_abc = abund_this %>% mutate(next_year_number = next_year$number/1000) %>% mutate(next_year_biomass = next_year_number*weight/1000)
 
 (total_number_next = sum(abund_abc$next_year_number))
 (total_biomass_next = sum(abund_abc$next_year_biomass))
 
-f_limit = 0.058
+f_limit = 0.058 # fixed. F = F_40%
 f_target = f_limit*0.8
 z_abc = f_limit+M
 
@@ -999,6 +1004,7 @@ z_abc = f_limit+M
 (rate_target = abc_target/total_biomass_next*100)
 (changeFpercent_limit = (0.058-f_current)*100/f_current)
 (changeFpercent_target = (0.047-f_current)*100/f_current)
+
 table_s1 = data.frame(Target_Limit = c("Target", "Limit"), ABC_ton = c(abc_target, abc_limit), 漁獲割合 = c(rate_target, rate_limit), 現状のF値からの増減 = c(changeFpercent_target$`mean(f)`, changeFpercent_limit$`mean(f)`))
 # total_catch_pref = merge %>% gather(key = pref, value = tons, 2:ncol(merge)) %>% summarize(sum(tons)/1000)
 table_s2 = data.frame(year = rep((n_year-5):n_year+1), 資源量_ton = abind(trend %>% dplyr::filter(year > (n_year-5)) %>% select(total), total_biomass_next, along = 1), 親魚量 = abind(srr %>% filter(year2 > (n_year-5)) %>% mutate(biomass2 = biomass/1000000) %>% select(biomass2), NA, along = 1), 漁獲量_ton = abind(catchF %>% filter(year > (n_year-5)) %>% select(catch), catch_this, NA, along = 1), F = abind(fishing_trend %>% filter(year > (n_year-5), data == "f") %>% select(value), f_current, NA, along = 1), 漁獲割合 = abind(fishing_trend %>% filter(year > (n_year-5), data == "rate") %>% select(value), rate_this, NA, along = 1))
