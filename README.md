@@ -28,7 +28,7 @@
 
 ---
 ## Rmarkdownの構成
-### 1. {r prefecture}
+### 1. ```{r prefecture}```
 県からもらった漁獲量の処理    
 !!県の漁獲量を資源量計算に使用するため，資源量計算の前に処理する必要がある!!        
     
@@ -48,13 +48,13 @@
 - step3. 作図    
 
 
-### 2. {r get biomass}
+### 2. ```{r get biomass}```
 資源量の計算   
-- step1. Number at ageデータの作成
--- step1-1. Age-Length Keyの作成
--- step1-2. von Bertalanffy growth curveの推定
--- step1-3. 年齢別体長別の尾数データの算出（これは資源評価結果ではない）
--- step1-4. 年齢別の平均体長と平均重量を算出
+- step1. Number at ageデータの作成    
+-- step1-1. Age-Length Keyの作成    
+-- step1-2. von Bertalanffy growth curveの推定    
+-- step1-3. 年齢別体長別の尾数データの算出（これは資源評価結果ではない）    
+-- step1-4. 年齢別の平均体長と平均重量を算出    
     
 - step2. 年齢別の生存率を算出
      
@@ -74,7 +74,7 @@
 
 
 
-### 3. {r get srr}
+### 3. ```{r get srr}```
 再生産関係の計算
 - step1. 調査で得られた資源尾数（南北海域別）
     
@@ -82,31 +82,31 @@
  
 - step3. 作図; 図13と15
 
-### 4. {r ABC}
+### 4. ```{r ABC}```
 ABCの計算
 
 
-### 5. {r fig9}
+### 5. ```{r fig9}```
 青森県と宮城県における漁獲物の体長組成の作成
 
 
-### 6. {r okisoko}
+### 6. ```{r okisoko}```
 沖底漁績データの集計
 
 
-### 7. {r figA3-4}
+### 7. ```{r figA3-4}```
 補足図3-4の作成
 
 
-### 8. {r fig4}
+### 8. ```{r fig4}```
 図4の作成
 
 
-### 9. {r figsA3}
+### 9. ```{r figsA3}```
 補足図3の作成
 
 
-### 10. {r save}
+### 10. ```{r save}```
 ディレクトリの下にoutputsフォルダを作成し，資源評価表に必要な図表を出す
 
 ---
