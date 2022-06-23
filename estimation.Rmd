@@ -770,7 +770,7 @@ trend_catch_rate = g+l+p+lab+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x
 
 
 ```{r get srr, echo=F, results=F, warning=F, include=F}
-#========== 1月時点の資源量を計算 ==========#
+#========== 再生産関係の計算 ==========#
 # step1. 調査で得られた資源尾数（南北海域別）
 # 
 # step2. 再生産関係（SRR）
