@@ -760,7 +760,8 @@ ns4 = left_join(ns3 %>% select(-total_biomass) %>% spread(key = area, value = to
 
 ns4$n_rate_number = ns4$北部.x/(ns4$南部.x+ns4$北部.x)
 ns4$n_rate_biomass = ns4$北部.y/(ns4$南部.y+ns4$北部.y)
-ns4_2 = ns4 %>% mutate(year = n_year + 1)
+ns4_2 = ns4 %>% mutate(year = year + 1)
+
 head(trend)  
 trend_ns = left_join(trend, ns4_2 %>% select(year, n_rate_biomass), by = "year")
 trend_ns = trend_ns %>% mutate(total_n = (trend_ns$total)/1000*trend_ns$n_rate_biomass, total_s = (trend_ns$total)/1000*(1-trend_ns$n_rate_biomass)) %>% select(year, total_n, total_s) %>% gather(key = data, value = biomass_sel, -year) %>% mutate(area = rep(c("北部", "南部"), each = length(unique(trend_ns$year)))) %>% na.omit()
