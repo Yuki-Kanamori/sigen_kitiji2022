@@ -1766,7 +1766,8 @@ dir.create(paste0(dir, "output"))
 dir_output = paste0(dir, "output")
 setwd(dir_output)
 
-write.csv(catch_new, "catch2021.csv", fileEncoding = fileEncoding, row.names=F) #来年の資源評価で使うデータ
+# write.csv(catch_new, "catch2021.csv", fileEncoding = fileEncoding, row.names=F) #来年の資源評価で使うデータ
+write.csv(catch, "rawdata_fig5_for_nextSA.csv", fileEncoding = fileEncoding, row.names=F) #来年の資源評価で使うデータ
 write.csv(table1, "table1.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(catch_t3, "table2.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(effort_t1, "table3.csv", fileEncoding = fileEncoding, row.names=F)
