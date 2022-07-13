@@ -957,9 +957,12 @@ s_current = exp(-(M+f_current))
 s1_current = survival %>% filter(year > (n_year-4), age == 2) %>% summarize(mean(surv))
 
 # 1歳魚が2歳魚になる計算
+# 今年1月の1歳魚尾数(= 10月の資源量から2ヶ月分の漁獲と自然死亡をひいたもの)×生残率/2歳魚の採集効率
 number_2old_oct_last = trawl %>% filter(year == (n_year-1), age == 1) %>% select(number)/1000 * s1_current
 number_2old_jan_this = number_2old_oct_last*survival_2month %>% filter(year == (n_year-1)) %>% select(surv)
 number_2old_jan_this_sel = number_2old_jan_this/q %>% filter(year == (n_year-1), age == 2) %>% select(q)
+# q_2 = q %>% filter(year == (n_year-1), age == 2) %>% select(q)
+# number_2old_jan_this_sel = number_2old_jan_this/q_2 %>% filter(year == (n_year-1), age == 2) %>% select(q)
 
 abund_this =  est %>% filter(year == n_year) %>% select(number, biomass, year, age) %>% dplyr::rename(number_est = number, biomass_est = biomass) # get the abundance of this year (2022)
 abund_this = left_join(abund_this, weight %>% filter(year == (n_year-1)), by = c("age"))
