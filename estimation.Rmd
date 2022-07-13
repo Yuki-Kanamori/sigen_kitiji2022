@@ -21,7 +21,7 @@ require(maps)
 require(mapdata)
 
 
-dir = "/Users/Yuki/Dropbox/業務/キチジ太平洋北部/SA2022/inputdata/"
+dir = "/Users/Yuki/Dropbox/業務/キチジ太平洋北部/SA2022/inputdata/"
 fileEncoding = "CP932"
 
 # not change
@@ -352,7 +352,7 @@ for(i in 1:length(sheets)){
   
   # step1-3. 年齢別体長別の尾数データの算出 --------
   # 年齢査定を行った個体は体長を測定しているので，各体長クラスごとに年齢の頻度（AC）を算出する
-  # その後，調査で得た体長データ（年齢査定していないもの．南北の海域ごとに海底面積で引き延ばされたもの）を掛けると，年齢別体長別尾数が算出される
+  # その後，ACを調査で得た体長データ（年齢査定していないもの．南北の海域ごとに海底面積で引き延ばされたもの）に掛けて，年齢別体長別尾数を算出する
   
   # 年齢別体長別の尾数（年齢査定をした個体のみ）
   # !!note!!  use 10+ and 10++
@@ -556,7 +556,6 @@ summary(weight)
 
 
 # step5. 採集効率が年齢で変わることを考慮して10月（調査時）の資源量と資源尾数を算出 ---------------------------------------------------------
-### number at age when selectivity changes at age
 abund_oct_sel = NULL
 for(i in min(trawl$year):max(trawl$year)){
   # i = min(trawl$year)
@@ -586,6 +585,7 @@ for(i in min(trawl$year):max(trawl$year)){
 
 # step6. 1月時点での資源量を算出するため，調査が行われた10月以降の2ヶ月分の漁獲率や自然死亡率などを仮定する ---------------------------------------------------------
 M = 2.5/20 #fixed
+
 abund_jan_forF_notneeded = NULL
 fishing_rate = NULL
 Z = NULL
@@ -673,7 +673,7 @@ mean = fishing_trend %>% filter(data == "rate") %>% filter(year > ((as.numeric(s
 
 
 # step9. figures ---------------------------------------------------------
-### year trend of stock biomass (fig. 10)
+### 資源量の年トレンド (fig. 10)
 trend = est %>% select(year, biomass) %>% na.omit() %>% dplyr::group_by(year) %>% dplyr::summarize(total = sum(biomass))
 low = (max(trend$total)-min(trend$total))*1/3+min(trend$total)
 high = max(trend$total)-(max(trend$total)-min(trend$total))*1/3
@@ -696,7 +696,7 @@ fig10 = g+p+l+lab+theme_bw(base_family = "HiraKakuPro-W3")+ theme(legend.positio
 
 
 
-### year trend of stock number (fig. 11)
+### 資源尾数の年トレンド (fig. 11)
 est = est %>% dplyr::mutate(age2 = ifelse(age > 4, "5歳以上", "2-4歳"))
 summary(est)
 N_trend = est %>% na.omit() %>% dplyr::group_by(year, age2) %>% dplyr::summarize(number = sum(number)/1000)
@@ -729,7 +729,7 @@ fig11 = g+b+lab+c+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuous
 
 
 
-### year trend of fishing (fig. 12)
+### 漁獲圧と漁獲割合の年トレンド (fig. 12)
 # F values
 g = ggplot(fishing_trend %>% filter(data == "f") %>% na.omit(), aes(x = year, y = value))
 p = geom_point(size = 5)
@@ -1013,8 +1013,13 @@ z_abc = f_limit+M
 (changeFpercent_limit = (0.058-f_current)*100/f_current)
 (changeFpercent_target = (0.047-f_current)*100/f_current)
 
+
+# ドキュメントに対応した表を作成．
+# Markdownに表示させてドキュメントの作成・確認を効率化する．outputフォルダには出さない．
 table_s1 = data.frame(Target_Limit = c("Target", "Limit"), ABC_ton = c(abc_target, abc_limit), 漁獲割合 = c(rate_target, rate_limit), 現状のF値からの増減 = c(changeFpercent_target$`mean(f)`, changeFpercent_limit$`mean(f)`))
+
 # total_catch_pref = merge %>% gather(key = pref, value = tons, 2:ncol(merge)) %>% summarize(sum(tons)/1000)
+
 table_s2 = data.frame(year = rep((n_year-5):n_year+1), 資源量_ton = abind(trend %>% dplyr::filter(year > (n_year-5)) %>% select(total), total_biomass_next, along = 1), 親魚量 = abind(srr %>% filter(year2 > (n_year-5)) %>% mutate(biomass2 = biomass/1000000) %>% select(biomass2), NA, along = 1), 漁獲量_ton = abind(catchF %>% filter(year > (n_year-5)) %>% select(catch), catch_this, NA, along = 1), F = abind(fishing_trend %>% filter(year > (n_year-5), data == "f") %>% select(value), f_current, NA, along = 1), 漁獲割合 = abind(fishing_trend %>% filter(year > (n_year-5), data == "rate") %>% select(value), rate_this, NA, along = 1))
 colnames(table_s2) = c("年", "資源量_ton", "親魚量_ton", "漁獲量_ton", "F", "漁獲割合")
 ```
@@ -1097,7 +1102,7 @@ tai_miya2 = left_join(tai_miya2, weight, by = "taityo") %>% mutate(total_weight_
 
 # (1-D) きちじの体長組成---------------------------------------------------------
 yatyo = read.csv(paste0(dir, "yatyo_miyagi.csv"), fileEncoding = fileEncoding)
-# yatyo = read.xlsx("箱入れキチジ体長.xlsx", sheet = "2019")
+# yatyo = read.xlsx("箱入れキチジ体長.xlsx", sheet = "2019")
 # head(yatyo)
 # summary(yatyo)
 yatyo = yatyo %>% dplyr::rename(ymd = 調査年月日, meigara = 銘柄, n_hako = 箱数)
