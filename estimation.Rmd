@@ -1561,6 +1561,7 @@ colnames(lonlat)
 colnames(lonlat) = c("station_code", "depth", "ami", "lat1", "lat2", "lon1", "lon2")
 summary(lonlat)
 lonlat = lonlat %>% mutate(lat = lat1+(round(lat2)/60), lon = lon1+(round(lon2)/60), tag = paste0(station_code, depth, "_", ami))
+
 trawl_length = read.csv(paste0(dir, "trawl_ns_length2.csv"), fileEncoding = fileEncoding)
 trawl_length3 = trawl_length[, c(10,11,12)]
 colnames(trawl_length3)
