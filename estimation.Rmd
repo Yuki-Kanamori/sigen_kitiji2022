@@ -31,49 +31,7 @@ options(warn = -1)
 ```
 
 <!-- 
-構成
-
-{r prefecture}
-県からもらった漁獲量と体長組成データの処理
-表1と図5
-!!県の漁獲量を資源量計算に使用するため，資源量計算の前に処理する必要がある!!
-
-
-{r get biomass}
-資源量の計算
-
-
-{r get srr}
-再生産関係の計算
-
-
-{r ABC}
-ABCの計算
-
-
-{r fig9}
-図9（漁獲物の体長組成）の作成
-
-
-{r okisoko}
-沖底漁績データの処理
-
-
-{r figA3-4}
-補足図3-4の作成
-
-
-{r fig4}
-図4の作成
-
-
-{r figsA3}
-補足図3の作成
-
-
-{r save}
-資源評価表に必要な図表を出す
-
+チャンクの構成はREADMEを参照
  -->
 
 
@@ -1596,11 +1554,114 @@ fig_a34 = g+p+pa+lab+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continu
 
 
 
+```{r figA3-1, echo=F, warning=F, message=F, results=F, include=F}
+lonlat = read.xlsx(paste0(dir, "操業記録データ2021.xlsx"))
+lonlat = lonlat[, c(2,3,4,9:12)]
+colnames(lonlat)
+colnames(lonlat) = c("station_code", "depth", "ami", "lat1", "lat2", "lon1", "lon2")
+summary(lonlat)
+lonlat = lonlat %>% mutate(lat = lat1+(round(lat2)/60), lon = lon1+(round(lon2)/60), tag = paste0(station_code, depth, "_", ami))
+trawl_length = read.csv(paste0(dir, "trawl_ns_length2.csv"), fileEncoding = fileEncoding)
+trawl_length3 = trawl_length[, c(10,11,12)]
+colnames(trawl_length3)
+colnames(trawl_length3) = c("station_code", "depth", "ami")
+summary(trawl_length3)
+trawl_length3 = trawl_length3 %>% mutate(tag = paste0(station_code, depth, "_", ami))
+length(unique(lonlat$tag))
+length(unique(trawl_length3$tag))
+trawl_length3 = left_join(trawl_length3, lonlat %>% select(-station_code, -depth), by = "tag") %>% distinct(tag, .keep_all = TRUE)
+levels(trawl_length3$station_code)
+summary(trawl_length3)
+
+### map
+tohoku <- data.frame(read.csv(paste0(dir, "marmap_coord.csv"), fileEncoding = fileEncoding))
+colnames(tohoku) <- c("long","lat","depth")
+check = tohoku[tohoku$depth<0 & tohoku$depth>=-1300,]
+summary(check)
+
+japan <- map_data("japan")
+japan2 <- japan
+japan2$long <- japan$long-0.01
+g <- ggplot(subset(tohoku[tohoku$depth<0 & tohoku$depth>=-1300,]),aes(long, lat))
+th = theme(panel.grid.major = element_blank(),
+           panel.grid.minor = element_blank(),
+           axis.text.x = element_text(size = rel(1.5), colour = "black"),
+           axis.text.y = element_text(size = rel(1.5), colour = "black"),
+           axis.title.x = element_text(size = rel(1.5)),
+           axis.title.y = element_text(size = rel(1.5)),
+           strip.text.x = element_text(size = rel(1.5)),
+           plot.title = element_text(size = rel(1.5)),
+           legend.title = element_text(size = rel(1.5)),
+           legend.text = element_text(size = rel(1.5)))
+fig_a31a = g + geom_polygon(data = japan2, group = japan$group, fill= "gray50", colour= "gray50")  + coord_map(xlim = c(140.5, 143), ylim = c(36, 42)) + stat_contour(aes(z=depth),binwidth=200,colour="black")+theme_bw(base_family = "HiraKakuPro-W3")+th+geom_point(data = trawl_length3, aes(x = lon, y = lat, shape = station_code), size = 3)+scale_shape_manual(values = c(15, 4, 17, 8, 18, 16, 1, 2))+labs(title = "(A)", x = "経度", y = "緯度", shape = "調査ライン")+scale_x_continuous(breaks=seq(140.5, 143, by = 1), expand = c(0, 0.5))
+
+
+trawl_length = read.xlsx(paste0(dir, "q_魚種別体長別資源量2021.xlsx")) %>% filter(和名 == "キチジ")
+# trawl_length = read.csv("trawl_ns_length2.csv", fileEncoding = fileEncoding)
+trawl_length1 = trawl_length[, c(6,10,11,15)]
+colnames(trawl_length1)
+colnames(trawl_length1) = c("NS", "station_code", "depth", "total_number")
+summary(trawl_length1)
+number_at_depth = trawl_length1 %>% dplyr::group_by(station_code, depth) %>% dplyr::summarize(total = sum(total_number))
+# number_at_depth$depth2 = as.factor(number_at_depth$depth)
+unique(number_at_depth$depth)
+number_at_depth$depth2 = factor(number_at_depth$depth, levels = c("150", "250", "350", "450", "550", "650", "750", "900"))
+g = ggplot(number_at_depth, aes(x = depth2, y = total/1000))
+b = geom_bar(stat = "identity", width = 1, colour = "grey50")
+lab = labs(x = "水深（m）", y = "資源密度", title = "(B)")
+f = facet_wrap(~ station_code, ncol = 2)
+th = theme(panel.grid.major = element_blank(),
+           panel.grid.minor = element_blank(),
+           axis.text.x = element_text(size = rel(1.5), angle = 90, colour = "black"),
+           axis.text.y = element_text(size = rel(1.5), colour = "black"),
+           axis.title.x = element_text(size = rel(1.5)),
+           axis.title.y = element_text(size = rel(1.5)),
+           legend.title = element_blank(),
+           legend.text = element_text(size = rel(1.5)),
+           strip.text.x = element_text(size = rel(1.5)),
+           plot.title = element_text(size = rel(1.5)))
+fig_a31b = g+b+lab+f+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_y_continuous(expand = c(0,0), breaks=seq(0, 50, by = 20))
+
+
+trawl_length2 = trawl_length[, c(6,16:ncol(trawl_length))]
+colnames(trawl_length2)
+summary(trawl_length2)
+trawl_length2 = trawl_length2 %>% tidyr::gather(key = temp, value = extention_number, 2:ncol(trawl_length2)) 
+trawl_length2 = trawl_length2 %>% mutate(size_class = as.numeric(str_sub(trawl_length2$temp, 3, 4))) %>% filter(size_class < 32)
+summary(trawl_length2)
+colnames(trawl_length2)[1] = "NS"
+trawl_length2$NS2 = ifelse(trawl_length2$NS == "N", "北部", "南部")
+levels(trawl_length2$NS2)
+trawl_length2$NS2 = factor(trawl_length2$NS2, levels = c("北部", "南部"))
+trawl_length2 = trawl_length2 %>% dplyr::group_by(size_class, NS2) %>% dplyr::summarize(total = sum(extention_number))
+summary(trawl_length2)
+g = ggplot(trawl_length2, aes(x = size_class, y = total/1000, fill = NS2))
+b = geom_bar(stat = "identity", width = 0.8, colour = "black", position = "dodge")
+lab = labs(x = "体長（cm）", y = "資源尾数 (千尾)", title = "(C)")
+th = theme(panel.grid.major = element_blank(),
+           panel.grid.minor = element_blank(),
+           axis.text.x = element_text(size = rel(1.5), colour = "black"),
+           axis.text.y = element_text(size = rel(1.5), colour = "black"),
+           axis.title.x = element_text(size = rel(1.5)),
+           axis.title.y = element_text(size = rel(1.5)),
+           legend.title = element_blank(),
+           legend.text = element_text(size = rel(1.5)),
+           strip.text.x = element_text(size = rel(1.5)),
+           plot.title = element_text(size = rel(1.5)),
+           legend.position = c(0.1, 0.8),
+           legend.background = element_rect(fill = "white", size = 0.4, linetype = "solid", colour = "black"))
+c = scale_fill_manual(values =  c("black", "white"))
+fig_a31c = g+b+lab+c+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuous(breaks=seq(0, max(trawl_length2$size_class), by = 2), expand = c(0, 0.5))+scale_y_continuous(expand = c(0,0),limits = c(0, (max(trawl_length2$total/1000))+2))
+```
+
+
+
 
 ```{r fig4, echo=F, warning=F, message=F, results=F, include=F}
 # 3-1 図4: 漁場の空間分布 --------------------------------------------------------------
 x <- read.delim(paste0(dir, "Map.txt"), header=T)
-###地図の入ったテキストファイル###
+
+# 地図ファイル
 z <- read.table(paste0(dir, "キアンコウ緯度経度.txt"), header=T, fileEncoding = fileEncoding)
 n_sheet = (n_year-2019)-1
 z2 = read.xlsx(paste0(dir, "okisoko_after2019.xlsx"), sheet = sheets[n_sheet])
@@ -1691,7 +1752,7 @@ ggsave(file = "fig15.png", plot = fig15, dpi = 400, unit = "cm", width = 11.49, 
 
 layout1 <- rbind(c(1, 2),
                  c(1, 3))
-# ggsave(file = "figA3-1.png", plot = grid.arrange(fig_a31a, fig_a31b, fig_a31c, layout_matrix = layout1), units = "in", width = 11.69, height = 8.27)
+ggsave(file = "figA3-1.png", plot = grid.arrange(fig_a31a, fig_a31b, fig_a31c, layout_matrix = layout1), units = "in", width = 11.69, height = 8.27)
 # 
 # ggsave(file = "figA3-2.png", plot = fig_a32, units = "in", width = 11.69, height = 8.27)
 # ggsave(file = "figA3-3.png", plot = fig_a33, units = "in", width = 11.69, height = 8.27)
