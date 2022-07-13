@@ -1657,6 +1657,47 @@ fig_a31c = g+b+lab+c+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continu
 
 
 
+```{r figA3-2, echo=F, warning=F, message=F, results=F, include=F}
+# ~2018までのデータ
+old_fig32 = read.csv(paste0(dir, "survey_N_at_age.csv"))
+old_fig32 = old_fig32 %>% gather(key = l, value = number, 3:ncol(old_fig32))
+old_fig32 = old_fig32 %>% mutate(size_class = as.numeric(str_sub(old_fig32$l, 2, 4))) %>% select(-l)
+
+# 2018~のデータ
+new_fig32 = number_at_age_table %>% gather(key = size_class, value = number, 2:(ncol(number_at_age_table)-1)) %>% filter(age != "total") %>% mutate(Age = ifelse(age == 10, "10+", age)) %>% select(-age) %>% rename(Year = year) %>% filter(Age != 0)
+
+# 統合
+all_fig32 = rbind(old_fig32, new_fig32)
+
+# figure
+levels(all_fig32$Age)
+unique(all_fig32$Age)
+all_fig32$age = factor(all_fig32$Age, levels = c("1", "2", "3", "4", "5", "5+", "6", "7", "8", "9", "10+"))
+mode(all_fig32$size_class)
+summary(all_fig32)
+all_fig32$size_class = as.numeric(all_fig32$size_class)
+
+g = ggplot(all_fig32, aes(x = size_class, y = number/1000000, fill = age))
+b = geom_bar(stat = "identity", width = 0.8, colour = "black", size = 0.5)
+lab = labs(x = "体長 (cm)", y = "資源尾数 (百万尾)", fill = "年齢")
+col_catch = c("red1", "red1", "darkorange", "goldenrod1", "goldenrod4", "grey60", "palegreen3", "palegreen4", "steelblue3", "steelblue4", "grey60")
+c = scale_fill_manual(values = col_catch)
+f = facet_wrap(~ Year, ncol = 5)
+th = theme(panel.grid.major = element_blank(),
+           panel.grid.minor = element_blank(),
+           axis.text.x = element_text(size = rel(1.5), colour = "black"),
+           axis.text.y = element_text(size = rel(1.5), colour = "black"),
+           axis.title.x = element_text(size = rel(1.5)),
+           axis.title.y = element_text(size = rel(1.5)),
+           legend.title = element_blank(),
+           legend.text = element_text(size = rel(1.8)),
+           strip.text.x = element_text(size = rel(1.8)))
+fig_a32 = g+b+lab+c+f+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuous(expand = c(0,0), breaks=seq(0, 36, by = 5))+scale_y_continuous(expand = c(0,0))
+```
+
+
+
+
 ```{r fig4, echo=F, warning=F, message=F, results=F, include=F}
 # 3-1 図4: 漁場の空間分布 --------------------------------------------------------------
 x <- read.delim(paste0(dir, "Map.txt"), header=T)
@@ -1736,11 +1777,9 @@ write.csv(est %>% mutate(number = number/1000) %>% dplyr::rename(number_thou = n
 write.csv(biomass_female %>% mutate(biomass_ton = biomass/1000000) %>% dplyr::rename(year = year2) %>% select(-biomass), "tableA4-8female.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(fishing_trend, "tableA4-9.csv", fileEncoding = fileEncoding, row.names=F)
 
-# ggsave(file = "fig2.png", plot = fig2, dpi = 400, unit = "cm", width = 11.49, height = 6.88)
 ggsave(file = "fig4.png", plot = fig4, units = "in", width = 8.27, height = 11.69)  
 ggsave(file = "fig5.png", plot = fig5, dpi = 400, unit = "cm", width = 11.49, height = 6.88)
 ggsave(file = "fig6.png", plot = fig6, dpi = 400, unit = "cm", width = 11.49, height = 6.88)
-# ggsave(file = "fig7.png", plot = fig7, dpi = 400, unit = "cm", width = 11.49, height = 6.88)
 ggsave(file = "fig8.png", plot = grid.arrange(kake, niso, tra, w, ncol = 1), units = "in", width = 9.5, height = 11.69)
 ggsave(file = "fig9.png", plot = fig9, units = "in", width = 11.69, height = 8.27)
 ggsave(file = "fig10.png", plot = fig10, dpi = 400, unit = "cm", width = 11.49, height = 6.88)
@@ -1754,8 +1793,8 @@ layout1 <- rbind(c(1, 2),
                  c(1, 3))
 ggsave(file = "figA3-1.png", plot = grid.arrange(fig_a31a, fig_a31b, fig_a31c, layout_matrix = layout1), units = "in", width = 11.69, height = 8.27)
 # 
-# ggsave(file = "figA3-2.png", plot = fig_a32, units = "in", width = 11.69, height = 8.27)
-# ggsave(file = "figA3-3.png", plot = fig_a33, units = "in", width = 11.69, height = 8.27)
+ggsave(file = "figA3-2.png", plot = fig_a32, units = "in", width = 11.69, height = 8.27)
+ggsave(file = "figA3-3.png", plot = fig_a33, units = "in", width = 11.69, height = 8.27)
 ggsave(file = "figA3-4.png", plot = fig_a34, units = "in", width = 11.69, height = 8.27, scale = 0.9)
 
 # png("ALK.png")
