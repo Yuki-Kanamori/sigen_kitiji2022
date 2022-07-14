@@ -216,8 +216,10 @@ catch$method = factor(catch$method, levels = c("沖底・小底以外", "小底"
 
 
 #=== step2-4 ===#
-# 表1
+# 表1の作成
 table1 = rbind(ao_sum, iwa_sum, miya_sum, fuku_sum, iba_sum) %>% mutate(年 = as.numeric(paste0(n_year-1))) %>% dplyr::group_by(method2) %>% dplyr::summarize(catch_t = sum(sum)/1000) %>% mutate(year = as.numeric(paste0(n_year-1))) %>% dplyr::rename(method = method2)
+table1_t = table1 %>% dplyr::group_by(year) %>% dplyr::summarize(catch_t = sum(catch_t)) %>% dplyr::mutate(method = "total")
+table1 = rbind(table1, table1_t)
 table1 = rbind(table1 %>% filter(method != "沖底") %>% mutate(memo = ""), okisoko_1yr %>% mutate(memo = "暫定値"), okisoko_2yr %>% mutate(memo = "確定値．表の修正が必要")) 
 
 
