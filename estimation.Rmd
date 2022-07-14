@@ -426,7 +426,7 @@ for(i in 1:length(sheets)){
 }
 length = rbind(old_length, temp_length)
 summary(length)
-
+tableA4_2 = length # 補足表4-2
 
 
 # 調査開始（1995年）以降の漁獲量
@@ -514,7 +514,7 @@ for(i in min(length$year):max(length$year)){
   weight = rbind(weight, temp_w2)
 }
 summary(weight)
-
+tableA4_3 = weight # 補足表4-3
 
 
 # step5. 採集効率が年齢で変わることを考慮して10月（調査時）の資源量と資源尾数を算出 ---------------------------------------------------------
@@ -1831,8 +1831,8 @@ write.csv(effort_t1, "table3.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(table4, "table4.csv", fileEncoding = fileEncoding, row.names=F)
 
 write.csv(trawl %>% mutate(number = number/1000), "tableA4-1.csv", fileEncoding = fileEncoding, row.names=F)
-write.csv(length, "tableA4-2.csv", fileEncoding = fileEncoding, row.names=F)
-write.csv(weight, "tableA4-3.csv", fileEncoding = fileEncoding, row.names=F)
+write.csv(tableA4_2, "tableA4-2.csv", fileEncoding = fileEncoding, row.names=F)
+write.csv(tableA4_3, "tableA4-3.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(q, "tableA4-4.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(abund_oct_sel %>% mutate(number_sel_thou = number_sel/1000) %>% dplyr::rename(biomass_sel_ton = biomass_sel) %>% select(-number_sel), "tableA4-5&6.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(est %>% mutate(number = number/1000) %>% dplyr::rename(number_thou = number, biomass_ton = biomass), "tableA4-7&8.csv", fileEncoding = fileEncoding, row.names=F) 
