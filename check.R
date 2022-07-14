@@ -257,21 +257,23 @@ catch2 = catch %>% dplyr::group_by(year) %>% dplyr::summarize(total_catch_t = su
 # step1-3. 年齢別体長別の尾数データの算出（これは資源評価結果ではない）
 # step1-4. 年齢別の平均体長と平均重量を算出
 # 
-# step2. 年齢別の生存率を算出
+# step2. 年齢別の生存率を算出（翌年の資源量計算で，ここで出てくる1歳魚->2歳魚の生残率を使う．3歳魚以上はstep6で出てくる生残率を使う）
 # 
 # step3. 体長別の採集効率(q)を考える
 #        
 # step4. 体長から体重を算出
 #        
 # step5. 採集効率が年齢で変わることを考慮して10月（調査時）の資源量と資源尾数を算出
+#
+# step6. 採集効率を考慮した資源尾数から生残率を算出（3歳魚以上の部分を，翌年の資源量計算で使う -> see チャンクABC）
 #        
-# step6. 1月時点での資源量を算出するため，調査が行われた10月以降の2ヶ月分の漁獲率や自然死亡率などを仮定する
+# step7. 1月時点での資源量を算出するため，調査が行われた10月以降の2ヶ月分の漁獲率や自然死亡率などを仮定する
 #        
-# step7. 10月の調査データから1月の資源量を算出
+# step8. 10月の調査データから1月の資源量を算出
 #        
-# step8. 漁獲割合
+# step9. 漁獲割合
 #        
-# step9. figures; figs. 10-12
+# step10. figures; figs. 10-12
 #===============================================#
 
 
@@ -430,53 +432,53 @@ catchF = catch2 %>% filter(year > 1994) %>% dplyr::rename(catch = total_catch_t)
 
 
 
-# # step ---------------------------------------------------------
-# # 年齢別の生残率を算出（t年のi歳の尾数/t+1年のi+1歳の尾数）
-# # エクセルでは使ってない表のはず
-# survival = NULL
-# for(i in min(trawl$year):(max(trawl$year)-1)){
-#   # i = min(trawl$year)
-#   data_lastyr = trawl %>% filter(year == i)
-#   data_thisyr = trawl %>% filter(year == (i+1))
-#   data = left_join(data_lastyr, data_thisyr, by = 'age') %>% arrange(age)
-#   surv = matrix(NA, ncol = 1, nrow = 9)
-#   
-#   if(i < 2006){ # 2005年までは年齢査定は5歳まで
-#     for(j in 2:5){
-#       if(j < 5){
-#         surv[(j-1), 1] = data$number.y[(j)]/data$number.x[(j-1)]
-#       }else{
-#         surv[(j-1), 1] = data$number.y[(j)]/(data$number.x[j]+data$number.x[j-1])
-#       }
-#     }
-#   }
-#   
-#   if(i == 2006){
-#     for(j in 2:5){
-#       if(j < 5){
-#         surv[(j-1), 1] = data$number.y[(j)]/data$number.x[(j-1)]
-#       }else{
-#         surv[(j-1), 1] = (data$number.y[(j)]+data$number.y[(j+1)]+data$number.y[(j+2)]+data$number.y[(j+3)]+data$number.y[(j+4)]+data$number.y[(j+5)])/(data$number.x[j]+data$number.x[j-1])
-#       }
-#     }
-#   }
-#   
-#   if(i > 2006){
-#     for(j in 2:10){
-#       if(j < 10){
-#         surv[(j-1), 1] = data$number.y[(j)]/data$number.x[(j-1)]
-#       }else{
-#         surv[(j-1), 1] = data$number.y[(j)]/(data$number.x[j]+data$number.x[j-1])
-#       }
-#     }
-#   }
-#   survival = rbind(survival, surv)
-# }
-# survival = data.frame(surv = survival, year = rep((min(trawl$year)+1):(max(trawl$year)), each = 9), age = rep(2:10))
+# step2 ---------------------------------------------------------
+# 年齢別の生残率を算出（t年のi歳の尾数/t+1年のi+1歳の尾数）
+# 翌年の資源量計算に，ここで出てくる1歳魚から2歳魚の生残率が使われる（cf. 3歳魚以上の生残率は，step6で算出する生残率を使う）
+survival1 = NULL
+for(i in min(trawl$year):(max(trawl$year)-1)){
+  # i = min(trawl$year)
+  data_lastyr = trawl %>% filter(year == i)
+  data_thisyr = trawl %>% filter(year == (i+1))
+  data = left_join(data_lastyr, data_thisyr, by = 'age') %>% arrange(age)
+  surv = matrix(NA, ncol = 1, nrow = 9)
+
+  if(i < 2006){ # 2005年までは年齢査定は5歳まで
+    for(j in 2:5){
+      if(j < 5){
+        surv[(j-1), 1] = data$number.y[(j)]/data$number.x[(j-1)]
+      }else{
+        surv[(j-1), 1] = data$number.y[(j)]/(data$number.x[j]+data$number.x[j-1])
+      }
+    }
+  }
+
+  if(i == 2006){
+    for(j in 2:5){
+      if(j < 5){
+        surv[(j-1), 1] = data$number.y[(j)]/data$number.x[(j-1)]
+      }else{
+        surv[(j-1), 1] = (data$number.y[(j)]+data$number.y[(j+1)]+data$number.y[(j+2)]+data$number.y[(j+3)]+data$number.y[(j+4)]+data$number.y[(j+5)])/(data$number.x[j]+data$number.x[j-1])
+      }
+    }
+  }
+
+  if(i > 2006){
+    for(j in 2:10){
+      if(j < 10){
+        surv[(j-1), 1] = data$number.y[(j)]/data$number.x[(j-1)]
+      }else{
+        surv[(j-1), 1] = data$number.y[(j)]/(data$number.x[j]+data$number.x[j-1])
+      }
+    }
+  }
+  survival1 = rbind(survival1, surv)
+}
+survival1 = data.frame(surv = survival1, year = rep((min(trawl$year)+1):(max(trawl$year)), each = 9), age = rep(2:10))
 
 
 
-# step2. 体長別の採集効率(q)を考える ---------------------------------------------------------
+# step3. 体長別の採集効率(q)を考える ---------------------------------------------------------
 a = 1524.581 # fixed
 b = 0.082366 # fixed
 c = 0.738107 # fixed
@@ -497,7 +499,7 @@ summary(q)
 
 
 
-# step3. 体長から体重を算出 ---------------------------------------------------------
+# step4. 体長から体重を算出 ---------------------------------------------------------
 weight = NULL
 for(i in min(length$year):max(length$year)){
   # i = min(length$year)
@@ -514,7 +516,7 @@ summary(weight)
 
 
 
-# step4. 採集効率が年齢で変わることを考慮して10月（調査時）の資源量と資源尾数を算出 ---------------------------------------------------------
+# step5. 採集効率が年齢で変わることを考慮して10月（調査時）の資源量と資源尾数を算出 ---------------------------------------------------------
 abund_oct_sel = NULL
 for(i in min(trawl$year):max(trawl$year)){
   # i = min(trawl$year)
@@ -542,7 +544,7 @@ for(i in min(trawl$year):max(trawl$year)){
 
 
 
-# step5.  -------------------------------------------------------
+# step6.  -------------------------------------------------------
 # 年齢別の生残率を算出（t年のi歳の尾数/t+1年のi+1歳の尾数）
 survival = NULL
 for(i in min(abund_oct_sel$year):(max(abund_oct_sel$year)-1)){
@@ -587,7 +589,7 @@ survival = data.frame(surv = survival, year = rep((min(abund_oct_sel$year)+1):(m
 
 
 
-# step6. 1月時点での資源量を算出するため，調査が行われた10月以降の2ヶ月分の漁獲率や自然死亡率などを仮定する ---------------------------------------------------------
+# step7. 1月時点での資源量を算出するため，調査が行われた10月以降の2ヶ月分の漁獲率や自然死亡率などを仮定する ---------------------------------------------------------
 M = 2.5/20 #fixed
 
 abund_jan_forF_notneeded = NULL
@@ -619,7 +621,7 @@ for(i in (min(abund_oct_sel$year)+1):max(abund_oct_sel$year)){
 
 
 
-# step7. 10月の調査データから1月の資源量を算出 ---------------------------------------------------------
+# step8. 10月の調査データから1月の資源量を算出 ---------------------------------------------------------
 est = NULL
 for(i in (min(abund_oct_sel$year)+1):(max(abund_oct_sel$year)+1)){
   # i = max(abund_oct_sel$year) #1995
@@ -667,7 +669,7 @@ for(i in (min(abund_oct_sel$year)+1):(max(abund_oct_sel$year)+1)){
 
 
 
-# step8. 漁獲割合 ---------------------------------------------------------
+# step9. 漁獲割合 ---------------------------------------------------------
 trend = est %>% select(year, biomass) %>% na.omit() %>% dplyr::group_by(year) %>% dplyr::summarize(total = sum(biomass))
 catch_rate = left_join(catchF, trend, by = "year") %>% mutate(rate = catch/total*100)
 fishing_trend = left_join(catch_rate, fishing_rate, by = "year") %>% select(year, rate, f) %>% gather(key = data, value = value, 2:3) %>% mutate(data2 = ifelse(data == "f", "F値", "漁獲割合"))
@@ -676,7 +678,7 @@ mean = fishing_trend %>% filter(data == "rate") %>% filter(year > ((as.numeric(s
 
 
 
-# step9. figures ---------------------------------------------------------
+# step10. figures ---------------------------------------------------------
 ### 資源量の年トレンド (fig. 10)
 trend = est %>% select(year, biomass) %>% na.omit() %>% dplyr::group_by(year) %>% dplyr::summarize(total = sum(biomass))
 low = (max(trend$total)-min(trend$total))*1/3+min(trend$total)
@@ -954,7 +956,7 @@ f_current = fishing_rate %>% filter(year > (n_year-4)) %>% summarize(mean(f))
 s_current = exp(-(M+f_current))
 
 # 1歳魚の生残率 = 1歳魚が2歳魚になる割合の3年平均
-s1_current = survival %>% filter(year > (n_year-4), age == 2) %>% summarize(mean(surv))
+s1_current = survival1 %>% filter(year > (n_year-4), age == 2) %>% summarize(mean(surv))
 
 # 1歳魚が2歳魚になる計算
 # 今年1月の1歳魚尾数(= 10月の資源量から2ヶ月分の漁獲と自然死亡をひいたもの)×生残率/2歳魚の採集効率
