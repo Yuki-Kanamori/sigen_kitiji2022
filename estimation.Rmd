@@ -1829,6 +1829,7 @@ write.csv(table1, "table1.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(table2, "table2.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(effort_t1, "table3.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(table4, "table4.csv", fileEncoding = fileEncoding, row.names=F)
+write.csv(catch_t3, "okisoko_for_SS.csv", fileEncoding = fileEncoding, row.names=F)
 
 write.csv(trawl %>% mutate(number = number/1000), "tableA4-1.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(tableA4_2, "tableA4-2.csv", fileEncoding = fileEncoding, row.names=F)
