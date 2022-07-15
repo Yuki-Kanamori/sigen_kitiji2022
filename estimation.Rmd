@@ -1398,8 +1398,8 @@ catch_t3[is.na(catch_t3)] = 0
 table2 = catch_t3 %>% gather(key = method, value = kg, 2:ncol(catch_t3)) %>% dplyr::group_by(area) %>% dplyr::summarize(catch_t = sum(kg)/1000)
 table2 = rbind(table2, table2 %>% dplyr::summarize(catch_t = sum(catch_t)) %>% mutate(area = "total"))
 
-# SS用のデータ
-ss_catch = catch_t3 %>% gather(key = method, value = catch_t, 2:ncol(catch_t3)) %>% dplyr::group_by(method) %>% dplyr::summarize(catch_t = sum(catch_t)/1000)
+# # SS用のデータ
+# ss_catch = catch_t3 %>% gather(key = method, value = catch_t, 2:ncol(catch_t3)) %>% dplyr::group_by(method) %>% dplyr::summarize(catch_t = sum(catch_t)/1000)
 
 # 表3の作成
 effort_t1 = okisoko %>% dplyr::group_by(method, area) %>% dplyr::summarize(sum= sum(effort)) %>% tidyr::spread(key = method, value = sum)
@@ -1514,8 +1514,8 @@ table4 = data2  %>% dplyr::group_by(method,漁区名) %>% dplyr::summarize(effor
 table4$cpue = table4$catch/table4$effort
 
 # SS用のCPUEデータの作成
-ss_cpue = data2  %>% dplyr::group_by(method) %>% dplyr::summarize(effort = sum(網数の合計), catch = sum(漁獲量の合計))
-ss_cpue$cpue = ss_cpue$catch/ss_cpue$effort
+ss_cpue = data2  %>% dplyr::group_by(method) %>% dplyr::summarize(effort = sum(網数の合計), catch_t = sum(漁獲量の合計)/1000)
+ss_cpue$cpue = ss_cpue$catch_t/ss_cpue$effort
 
 ### かけ廻し
 g = ggplot(cpue2 %>% filter(method == "かけ廻し"), aes(x = year, y = cpue, shape = label, fill = label))
@@ -1724,7 +1724,7 @@ b = geom_bar(stat = "identity", width = 0.8, colour = "black", size = 0.5)
 lab = labs(x = "体長 (cm)", y = "資源尾数 (百万尾)", fill = "年齢")
 col_catch = c("red1", "red1", "darkorange", "goldenrod1", "goldenrod4", "grey60", "palegreen3", "palegreen4", "steelblue3", "steelblue4", "grey60")
 c = scale_fill_manual(values = col_catch)
-f = facet_wrap(~ Year, ncol = 5)
+f = facet_wrap(~ Year, ncol = 4)
 th = theme(panel.grid.major = element_blank(),
            panel.grid.minor = element_blank(),
            axis.text.x = element_text(size = rel(1.5), colour = "black"),
@@ -1732,8 +1732,8 @@ th = theme(panel.grid.major = element_blank(),
            axis.title.x = element_text(size = rel(1.5)),
            axis.title.y = element_text(size = rel(1.5)),
            legend.title = element_blank(),
-           legend.text = element_text(size = rel(1.8)),
-           strip.text.x = element_text(size = rel(1.8)))
+           legend.text = element_text(size = rel(1.5)),
+           strip.text.x = element_text(size = rel(1.5)))
 fig_a32 = g+b+lab+c+f+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuous(expand = c(0,0), breaks=seq(0, 36, by = 5))+scale_y_continuous(expand = c(0,0))
 ```
 
@@ -1837,8 +1837,9 @@ write.csv(table1, "table1.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(table2, "table2.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(effort_t1, "table3.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(table4, "table4.csv", fileEncoding = fileEncoding, row.names=F)
-write.csv(ss_catch, "okisokoCatch_for_SS.csv", fileEncoding = fileEncoding, row.names=F)
+# write.csv(ss_catch, "okisokoCatch_for_SS.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(ss_cpue, "okisokoCPUE_for_SS.csv", fileEncoding = fileEncoding, row.names=F)
+write.csv(trend, "estimatedtrend_for_SS.csv", fileEncoding = fileEncoding, row.names=F)
 
 write.csv(trawl %>% mutate(number = number/1000), "tableA4-1.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(tableA4_2, "tableA4-2.csv", fileEncoding = fileEncoding, row.names=F)
@@ -1865,7 +1866,7 @@ layout1 <- rbind(c(1, 2),
                  c(1, 3))
 ggsave(file = "figA3-1.png", plot = grid.arrange(fig_a31a, fig_a31b, fig_a31c, layout_matrix = layout1), units = "in", width = 11.69, height = 8.27)
 # 
-ggsave(file = "figA3-2.png", plot = fig_a32, units = "in", width = 11.69, height = 8.27)
+ggsave(file = "figA3-2.png", plot = fig_a32, units = "in", width = 8.27, height = 11.69)
 ggsave(file = "figA3-3.png", plot = fig_a33, units = "in", width = 11.69, height = 8.27)
 ggsave(file = "figA3-4.png", plot = fig_a34, units = "in", width = 11.69, height = 8.27, scale = 0.9)
 
