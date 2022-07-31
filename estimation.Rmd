@@ -604,14 +604,14 @@ for(i in (min(abund_oct_sel$year)+1):max(abund_oct_sel$year)){
   data_catchF_last = catchF %>% filter(year == (i-1))
   data_catchF_this = catchF %>% filter(year == i)
   
-  temp_abund_jan = sum(data_oct_sel_last$biomass_sel)*exp(-2/12*0.125)-data_catchF_last$catch/6*exp(-2/12*0.125)
+  temp_abund_jan = sum(data_oct_sel_last$biomass_sel)*exp(-2/12*0.125)-data_catchF_last$catch/6*exp(-2/12*0.125) # 値
   temp_fishing_rate = data_catchF_this$catch/temp_abund_jan
   temp_f = -log(1-(temp_fishing_rate/exp(-M/2)))
   temp_Z = temp_f + M
   temp_survival_2month = exp(-temp_Z/6)
   
   abund_jan_forF_notneeded_pre = data.frame(biomass = temp_abund_jan, year = i)
-  fishing_rate_pre = data.frame(f = temp_f, year = i)
+  fishing_rate_pre = data.frame(f = temp_fishing_rate, year = i)
   Z_pre = data.frame(z = temp_Z, year = i)
   survival_2month_pre = data.frame(surv = temp_survival_2month, year = i)
   
@@ -952,7 +952,8 @@ fig15 = g+p+pa+lab+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuou
 
 ```{r ABC, echo=F, results=F, warning=F, include=F}
 # F_current = 直近3年のFの平均
-f_current = fishing_rate %>% filter(year > (n_year-4)) %>% summarize(mean(f))
+F = catch_rate %>% mutate(temp = (rate/100/exp(-M/2))) %>% mutate(temp2 = 1-temp) %>% mutate(F = -log(temp2))
+f_current = F %>% filter(year > (n_year-4)) %>% summarize(mean(F))
 
 s_current = exp(-(M+f_current))
 
