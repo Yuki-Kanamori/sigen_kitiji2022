@@ -480,9 +480,10 @@ survival1 = data.frame(surv = survival1, year = rep((min(trawl$year)+1):(max(tra
 
 
 # step3. 体長別の採集効率(q)を考える ---------------------------------------------------------
-a = 1524.581 # fixed
-b = 0.082366 # fixed
-c = 0.738107 # fixed
+a = 1524.58141594268 # fixed
+b = 0.0823656986637998 # fixed
+c = 0.738106676282726 # fixed
+# ↑エクセルの値をそのまま張り付け
 
 q = NULL
 for(i in min(length$year):max(length$year)){
@@ -555,7 +556,7 @@ for(i in min(abund_oct_sel$year):(max(abund_oct_sel$year)-1)){
   data = left_join(data_lastyr, data_thisyr, by = 'age') %>% arrange(age)
   surv = matrix(NA, ncol = 1, nrow = 9)
   
-  if(i < 2006){ # 2005年までは年齢査定は5歳まで
+  if(i < 2005){ # 2005年までは年齢査定は5歳まで
     for(j in 1:4){
       if(j < 3){
         surv[j, 1] = data$number_sel.y[(j+1)]/data$number_sel.x[(j)]
