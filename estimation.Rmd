@@ -1948,7 +1948,7 @@ N_trend %>% dplyr::rename(N_thou = number, age = age2)
 
 #### F値（3段落目）
 ```{r table_fishing trend1, echo=F}
-fishing_trend %>% filter(data == "f") %>% select(-data, -data2) %>% dplyr::rename("F" = value)
+fishing_trend %>% filter(data == "F") %>% select(-data, -data2) %>% dplyr::rename("F" = value)
 # %>% filter(year == (n_year-1))
 # fishing_trend %>% filter(year < 2011, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year > 2010, data == "f") %>% spread(key = year, value = value)
